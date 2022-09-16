@@ -6,8 +6,8 @@ def randbool(r, mxr):
     return (t <= r)
 
 def randcell(w, h):
-    tw = rand(0, w)
-    th = rand(0, h)
+    tw = rand(0, w - 1)
+    th = rand(0, h - 1)
     return (tw, th)
 
 def randcell2(x, y):
