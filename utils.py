@@ -1,6 +1,10 @@
 from random import randint as rand
 import re
 
+def randnumber(max):
+    r = rand(0, max)
+    return  r
+
 def randbool(r, mxr):
     t = rand(0, mxr)
     return (t <= r)

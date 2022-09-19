@@ -1,6 +1,7 @@
 from utils import randbool
 from utils import randcell
 from utils import randcell2
+from utils import randnumber
 
 CELL_TYPES = '🧱🌴🌊🏥🏪🔥⚫️'
 
@@ -58,30 +59,33 @@ class Map:
 
     # Зажечь огонь на рандомном дереве
     def generate_fire(self):
-        fc = randcell(self.w, self.h)
-        fx, fy = fc[1], fc[0]
+        trees = []
+        for ri in range(self.h):
+            for ci in range(self.w):
+                if self.cells[ri][ci] == 1:
+                    trees.append([ri , ci])
+        max = len(trees)
+        r = randnumber(max-1)
+        
+        if (max > 1):
+            tx, ty = trees[r][0], trees[r][1]   
+            self.cells[tx][ty] = 5
 
-        if self.cells[fx][fy] == 1:
-            self.cells[fx][fy] = 5
+
+
+
     
     # Сжечь деревья, добавить новые пожары 
     def update_fire(self):
-        fire = 1
+        tr =  1
         for ri in range(self.h):
             for ci in range(self.w):
                 if self.cells[ri][ci] == 5:
-                    self.cells[ri][ci] = 0
-
-                    rc2 = randcell2(ri, ci)
-                    rx2, ry2 = rc2[0], rc2[1]
-                    
-                    if (self.check_bounds(rx2, ry2) and self.cells[rx2][ry2] == 1):
-                        self.cells[rx2][ry2] = 5
-                        fire += 1    
-
-        for i in range(fire, 0, -1):
+                    self.cells[ri][ci] = 6
+                    tr += 1
+                
+        for i in range(tr, 0, -1):
             self.generate_fire()
-
 
     # Добавление новых деревьев
     def generate_tree(self):
@@ -90,8 +94,21 @@ class Map:
         if (self.check_bounds(cx, cy) and self.cells[cx][cy] == 0):
             self.cells[cx][cy] = 1
 
+    # Место для увеличения бака воды 
+    def generate_upgrade_shop(self):
+        c = randcell(self.w, self.h)
+        cx, cy = c[0], c[1]
+        self.cells[cx][cy] = 4
 
 
-    
-    
-
+    # Механика тушения пожара и набора очков
+    def check_water(self, helico):
+        if self.cells[helico.x][helico.y] == 2:
+            helico.tank = helico.maxtank
+        elif (self.cells[helico.x][helico.y] == 5 and helico.tank > 0):
+            helico.tank -= 1
+            helico.score += 100
+            self.cells[helico.x][helico.y] = 1
+        elif (self.cells[helico.x][helico.y] == 4 and helico.score >= 500):
+            helico.maxtank += 1
+            helico.score -= 500
