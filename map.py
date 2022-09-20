@@ -16,13 +16,17 @@ class Map:
             return False
         return True
 
-    def print_map(self, helico):
+    def print_map(self, helico, clouds):
         print('🔲' * (self.w + 2))
         for ri in range(self.h):
             print('🔲', end='')
             for ci in range(self.w): 
                 cell = self.cells[ri][ci]
-                if (helico.x == ri and helico.y == ci):
+                if clouds.cells[ri][ci] == 1:
+                    print('🔘', end='')
+                elif clouds.cells[ri][ci] == 2:
+                    print('🔻', end='')
+                elif (helico.x == ri and helico.y == ci):
                     print('🚁', end='')
                 elif (cell >= 0 and cell < len(CELL_TYPES)):  
                     print(CELL_TYPES[cell], end='')
@@ -74,6 +78,7 @@ class Map:
 
 
 
+
     
     # Сжечь деревья, добавить новые пожары 
     def update_fire(self):
@@ -94,21 +99,36 @@ class Map:
         if (self.check_bounds(cx, cy) and self.cells[cx][cy] == 0):
             self.cells[cx][cy] = 1
 
-    # Место для увеличения бака воды 
-    def generate_upgrade_shop(self):
-        c = randcell(self.w, self.h)
-        cx, cy = c[0], c[1]
-        self.cells[cx][cy] = 4
+    # Место для создания зданий
+    def add_building(self):
+        def rand_place(build):
+            c = randcell(self.w, self.h)
+            cx, cy = c[0], c[1]
+            if (self.cells[cx][cy] != 3):
+                self.cells[cx][cy] = build
+            else:
+                rand_place(build)
+        
+        rand_place(3)
+        rand_place(4)
+
 
 
     # Механика тушения пожара и набора очков
-    def check_water(self, helico):
-        if self.cells[helico.x][helico.y] == 2:
+    def helico_comand(self, helico, clouds):
+        cell = self.cells[helico.x][helico.y]
+        lightning = clouds.cells[helico.x][helico.y]
+        if cell == 2:
             helico.tank = helico.maxtank
-        elif (self.cells[helico.x][helico.y] == 5 and helico.tank > 0):
+        if (cell == 5 and helico.tank > 0):
             helico.tank -= 1
             helico.score += 100
             self.cells[helico.x][helico.y] = 1
-        elif (self.cells[helico.x][helico.y] == 4 and helico.score >= 500):
+        if (cell == 4 and helico.score >= 500):
             helico.maxtank += 1
             helico.score -= 500
+        if (cell == 3 and helico.lives < 3 and helico.score >= 500 ):
+            helico.lives += 1
+            helico.score -= 500
+        if (lightning == 2):
+            helico.lives -= 1
